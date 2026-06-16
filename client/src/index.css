@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Nunito', system-ui, sans-serif;
+  color: #4a356a;
+  background:
+    radial-gradient(1200px 600px at 12% -10%, #efeaf9 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #fbe6ef 0%, transparent 50%),
+    #fcfbfe;
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .hc-card {
+    @apply rounded-3xl bg-white/90 backdrop-blur shadow-card border border-lavender-100;
+  }
+  .hc-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl font-semibold
+           px-5 py-2.5 transition-all duration-200 focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-lavender-400 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .hc-btn-primary {
+    @apply hc-btn text-white shadow-soft
+           bg-gradient-to-r from-lavender-500 to-blush-400
+           hover:from-lavender-600 hover:to-blush-500 active:scale-[0.98];
+  }
+  .hc-btn-ghost {
+    @apply hc-btn bg-lavender-50 text-lavender-700 hover:bg-lavender-100;
+  }
+  .hc-btn-soft {
+    @apply hc-btn bg-white text-lavender-700 border border-lavender-200 hover:bg-lavender-50;
+  }
+  .hc-input {
+    @apply w-full rounded-2xl border border-lavender-200 bg-white/80 px-4 py-2.5
+           text-lavender-900 placeholder-lavender-300
+           focus:outline-none focus:ring-2 focus:ring-lavender-400 focus:border-transparent;
+  }
+  .hc-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold
+           cursor-pointer transition-colors select-none;
+  }
+  .hc-chip-on {
+    @apply bg-gradient-to-r from-lavender-500 to-blush-400 text-white;
+  }
+  .hc-chip-off {
+    @apply bg-lavender-50 text-lavender-600 hover:bg-lavender-100;
+  }
+  .hc-label {
+    @apply block text-sm font-bold text-lavender-700 mb-1.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
