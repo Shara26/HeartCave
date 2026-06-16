@@ -152,7 +152,6 @@ heartcave/
 
 ## Environment Variables
 
-Copy `server/.env.example` to `server/.env` and adjust as needed:
 
 ```env
 # Server
@@ -179,65 +178,6 @@ The frontend talks to the backend through Vite's dev proxy (`/api` and `/socket.
 
 ---
 
-## Installation
-
-Prerequisites: **Node.js 18+** and a running **MongoDB** instance (local or Atlas).
-
-```bash
-# from the project root
-cd server && npm install
-cd ../client && npm install
-```
-
----
-
-## Running the Backend
-
-```bash
-cd server
-cp .env.example .env      # then edit values
-npm run dev               # nodemon, hot reload
-# or
-npm start                 # production mode
-```
-
-The API listens on `http://localhost:5000` (health check at `/api/health`).
-
----
-
-## Running the Frontend
-
-```bash
-cd client
-npm run dev
-```
-
-Vite serves the app at `http://localhost:5173` and proxies API/WebSocket traffic to the backend.
-
----
-
-## Seeding the Database
-
-```bash
-cd server
-npm run seed              # creates admin, demo users, posts, a match, and messages
-npm run seed:destroy      # clears all seeded collections
-```
-
----
-
-## Credentials
-
-After seeding:
-
-| Role        | Email                  | Password       |
-| ----------- | ---------------------- | -------------- |
-| Admin       | `admin@heartcave.app`  | `Admin@12345`  |
-| Demo users  | (shown in seed output) | `Password@123` |
-
-Admins sign in via the dedicated admin login route; regular users sign in via the normal login.
-
----
 
 ## Security Features
 
@@ -252,15 +192,6 @@ Admins sign in via the dedicated admin login route; regular users sign in via th
 
 ---
 
-## Deployment Guide
-
-1. **Database:** provision MongoDB (e.g. MongoDB Atlas) and set `MONGODB_URI`.
-2. **Backend:** deploy `server/` to a Node host (Render, Railway, Fly.io, a VM…). Set all environment variables, use strong unique JWT secrets, set `NODE_ENV=production`, and set `CLIENT_URL` to the deployed frontend origin (used for CORS and secure cookies).
-3. **Frontend:** run `npm run build` in `client/` and serve the static `dist/` output (Netlify, Vercel, S3/CloudFront, or the same Node host). Point the client's API base at the deployed backend (or keep them same-origin behind a reverse proxy).
-4. **HTTPS:** terminate TLS at your host or load balancer so secure cookies and WebSockets work correctly.
-5. **Seed (optional):** run `npm run seed` once against the production database to create the admin account, then change its password.
-
----
 
 ## Future Improvements
 
