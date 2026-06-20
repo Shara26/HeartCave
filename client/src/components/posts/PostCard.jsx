@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send, Trash2 } from 'lucide-react';
 import api, { errorMessage } from '../../services/api.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 import Avatar from '../common/Avatar.jsx';
 import Badge from '../common/Badge.jsx';
 import ReactionBar from '../common/ReactionBar.jsx';
@@ -11,6 +12,9 @@ import { timeAgo } from '../../utils/format.js';
 
 
 export default function PostCard({ post }) {
+   const { user } = useAuth();
+   const [removed, setRemoved] = useState(false);
+const [deletingPost, setDeletingPost] = useState(false);
   const [counts, setCounts] = useState(post.reactionCounts || {});
   const [mine, setMine] = useState(post.myReaction || null);
   const [showComments, setShowComments] = useState(false);
@@ -80,22 +84,62 @@ export default function PostCard({ post }) {
     }
   };
 
-  const author = post.author || {};
+  const handleDeleteComment = async (commentId) => {
+  if (!window.confirm('Delete this comment?')) return;
+  const prev = comments;
+  // remove instantly, restore if the request fails
+  setComments((list) => (list || []).filter((x) => x.id !== commentId));
+  setCommentCount((n) => Math.max(0, n - 1));
+  try {
+    await api.delete(`/posts/${post.id}/comments/${commentId}`);
+    toast.success('Comment deleted successfully');
+  } catch (err) {
+    setComments(prev);
+    setCommentCount((n) => n + 1);
+    toast.error(errorMessage(err, 'Could not delete comment'));
+  }
+};
 
+const handleDeletePost = async () => {
+  if (!window.confirm('Delete this post? This cannot be undone.')) return;
+  setDeletingPost(true);
+  try {
+    await api.delete(`/posts/${post.id}`);
+    toast.success('Post deleted successfully');
+    setRemoved(true);   // hides the card immediately
+  } catch (err) {
+    toast.error(errorMessage(err, 'Could not delete post'));
+    setDeletingPost(false);
+  }
+};
+
+  const author = post.author || {};
+if (removed) return null;
   return (
     <article className="hc-card p-5 animate-fade-up">
-      <header className="flex items-center gap-3">
-        <Avatar name={author.anonymousName} size="md" />
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-display font-bold text-lavender-700">{author.anonymousName}</span>
-            {(author.badges || []).slice(0, 1).map((b) => (
-              <Badge key={b} label={b} />
-            ))}
-          </div>
-          <span className="text-xs text-lavender-400">{timeAgo(post.createdAt)}</span>
-        </div>
-      </header>
+     <header className="flex items-center gap-3">
+  <Avatar name={author.anonymousName} size="md" />
+  <div className="min-w-0 flex-1">
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="font-display font-bold text-lavender-700">{author.anonymousName}</span>
+      {(author.badges || []).slice(0, 1).map((b) => (
+        <Badge key={b} label={b} />
+      ))}
+    </div>
+    <span className="text-xs text-lavender-400">{timeAgo(post.createdAt)}</span>
+  </div>
+  {author.anonymousName === user?.anonymousName && (
+    <button
+      onClick={handleDeletePost}
+      disabled={deletingPost}
+      aria-label="Delete post"
+      title="Delete post"
+      className="rounded-full p-2 text-lavender-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+    >
+      <Trash2 className="h-4 w-4" />
+    </button>
+  )}
+</header>
 
       <p className="mt-3 whitespace-pre-wrap leading-relaxed text-lavender-900">{post.content}</p>
 
@@ -123,15 +167,25 @@ export default function PostCard({ post }) {
                   <Avatar name={c.author?.anonymousName} size="sm" />
                   <div className="flex-1 rounded-2xl bg-lavender-50 px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-lavender-700">
-                        {c.author?.anonymousName}
-                      </span>
-                      {c.isExperienceShare && (
-                        <span className="rounded-full bg-blush-100 px-2 py-0.5 text-[10px] font-bold text-blush-500">
-                          Experience
-                        </span>
-                      )}
-                    </div>
+  <span className="text-sm font-bold text-lavender-700">
+    {c.author?.anonymousName}
+  </span>
+  {c.isExperienceShare && (
+    <span className="rounded-full bg-blush-100 px-2 py-0.5 text-[10px] font-bold text-blush-500">
+      Experience
+    </span>
+  )}
+  {c.author?.anonymousName === user?.anonymousName && (
+    <button
+      onClick={() => handleDeleteComment(c.id)}
+      aria-label="Delete comment"
+      title="Delete comment"
+      className="ml-auto rounded-full p-1 text-lavender-300 transition-colors hover:bg-red-50 hover:text-red-500"
+    >
+      <Trash2 className="h-3.5 w-3.5" />
+    </button>
+  )}
+</div>
                     <p className="text-sm text-lavender-900">{c.content}</p>
                   </div>
                 </div>

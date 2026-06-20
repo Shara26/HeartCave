@@ -181,3 +181,26 @@ export const deletePost = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Post removed' });
 });
 
+// DELETE /api/posts/:postId/comments/:commentId
+// Allowed for: the comment's author (or an admin). Ownership is enforced here.
+export const deleteComment = asyncHandler(async (req, res) => {
+  const post = await Post.findById(req.params.postId);
+  if (!post || post.isRemoved) throw new ApiError(404, 'Post not found');
+
+  const comment = post.comments.id(req.params.commentId);
+  if (!comment) throw new ApiError(404, 'Comment not found');
+
+  const isOwner = comment.userId.toString() === req.user._id.toString();
+  const isAdmin = req.user.role === 'admin';
+  if (!isOwner && !isAdmin) throw new ApiError(403, 'You can only delete your own comments');
+
+  // Comments are embedded subdocuments → just pull it out and save.
+  post.comments.pull(req.params.commentId);
+  await post.save();
+
+  const commentCount = post.comments.filter(
+    (c) => c.moderationStatus !== MODERATION_STATUS.BLOCKED
+  ).length;
+
+  res.json({ success: true, message: 'Comment deleted successfully', commentCount });
+});

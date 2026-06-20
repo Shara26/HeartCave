@@ -6,6 +6,7 @@ import {
   listComments,
   reactToPost,
   deletePost,
+  deleteComment,
 } from '../controllers/postController.js';
 import { protect } from '../middleware/auth.js';
 import { writeLimiter } from '../middleware/rateLimiter.js';
@@ -18,6 +19,7 @@ router.route('/').post(writeLimiter, postRules, runValidation, createPost).get(l
 router.post('/:id/comment', writeLimiter, commentRules, runValidation, addComment);
 router.get('/:id/comments', listComments);
 router.post('/:id/react', reactToPost);
+router.delete('/:postId/comments/:commentId', deleteComment);
 router.delete('/:id', deletePost);
 
 export default router;
