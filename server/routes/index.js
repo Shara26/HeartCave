@@ -6,6 +6,7 @@ import chatRoutes from './chatRoutes.js';
 import userRoutes from './userRoutes.js';
 import adminRoutes from './adminRoutes.js';
 import { DAILY_HOPE_MESSAGES, STRUGGLES, INTERESTS, AGE_GROUPS } from '../config/constants.js';
+import feedbackRoutes from './feedbackRoutes.js';
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use('/match', matchRoutes);
 router.use('/chat', chatRoutes);
 router.use('/users', userRoutes);
 router.use('/admin', adminRoutes);
+router.use('/feedback', feedbackRoutes);
 
 export default router;

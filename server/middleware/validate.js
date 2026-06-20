@@ -1,3 +1,4 @@
+import { FEEDBACK_TYPES } from '../models/Feedback.js';
 import { body, validationResult } from 'express-validator';
 import { ApiError } from '../utils/apiError.js';
 import { AGE_GROUPS, STRUGGLES, INTERESTS, REPORT_REASONS } from '../config/constants.js';
@@ -49,4 +50,11 @@ export const reportRules = [
   body('reportedUser').isMongoId().withMessage('Invalid user'),
   body('reason').isIn(REPORT_REASONS).withMessage('Invalid reason'),
   body('description').optional().isLength({ max: 2000 }),
+];
+
+export const feedbackRules = [
+  body('message').trim().isLength({ min: 1, max: 2000 }).withMessage('Message is required (max 2000 chars)'),
+  body('type').optional().isIn(FEEDBACK_TYPES).withMessage('Invalid feedback type'),
+  body('name').optional({ checkFalsy: true }).trim().isLength({ max: 80 }).withMessage('Name too long'),
+  body('email').optional({ checkFalsy: true }).isEmail().withMessage('Enter a valid email').normalizeEmail(),
 ];
