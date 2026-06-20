@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Heart, LayoutDashboard, MessagesSquare, HandHeart, LogOut, UserRound } from 'lucide-react';
+import { Heart, LayoutDashboard, MessagesSquare, HandHeart, LogOut, UserRound, MessageSquareHeart } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import Avatar from './Avatar.jsx';
@@ -8,6 +8,7 @@ const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/match', label: 'Find Support', icon: HandHeart },
   { to: '/chats', label: 'Chats', icon: MessagesSquare },
+   { to: '/feedback', label: 'Feedback', icon: MessageSquareHeart },
 ];
 
 export default function Navbar() {

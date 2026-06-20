@@ -1,6 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from './components/common/ProtectedRoute.jsx';
 import AppLayout from './components/common/AppLayout.jsx';
+import Feedback from './pages/Feedback.jsx';
+import AdminFeedback from './pages/admin/AdminFeedback.jsx';
+import Privacy from './pages/Privacy.jsx';
+import Terms from './pages/Terms.jsx';
 
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -22,6 +26,8 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/privacy" element={<Privacy />} />
+<Route path="/terms" element={<Terms />} />
 
       {/* Authenticated app */}
       <Route
@@ -37,6 +43,7 @@ export default function App() {
         <Route path="/chats" element={<Chats />} />
         <Route path="/chats/:matchId" element={<ChatRoom />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/feedback" element={<Feedback />} />
         <Route path="/users/:id" element={<PublicProfile />} />
       </Route>
 
@@ -49,6 +56,15 @@ export default function App() {
           </AdminRoute>
         }
       />
+
+      <Route
+  path="/admin/feedback"
+  element={
+    <AdminRoute>
+      <AdminFeedback />
+    </AdminRoute>
+  }
+/>
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />
