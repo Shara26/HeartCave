@@ -16,10 +16,18 @@ export const onTokenChange = (fn) => {
   return () => subscribers.delete(fn);
 };
 
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? 'https://heartcave-1.onrender.com' : '');
+
 const api = axios.create({
-  baseURL: '/api',
-  withCredentials: true, // send refresh cookie
+  baseURL: `${API_BASE}/api`,
+  withCredentials: true,
 });
+
+refreshing = axios
+      .post(`${API_BASE}/api/auth/refresh`, {}, { withCredentials: true })
+
 
 api.interceptors.request.use((config) => {
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
@@ -34,7 +42,7 @@ let refreshing = null;
 const doRefresh = async () => {
   if (!refreshing) {
     refreshing = axios
-      .post('/api/auth/refresh', {}, { withCredentials: true })
+      .post(`${API_BASE}/api/auth/refresh`, {}, { withCredentials: true })
       .then((res) => {
         setAccessToken(res.data.accessToken);
         return res.data;
