@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-// In-memory access token. Refresh token lives in an httpOnly cookie set by the
-// backend, so it is never readable from JS. We keep the short-lived access
-// token in memory and attach it to every request.
 let accessToken = null;
 const subscribers = new Set();
 
@@ -16,6 +13,8 @@ export const onTokenChange = (fn) => {
   return () => subscribers.delete(fn);
 };
 
+// Declared BEFORE it is used below. Production targets Render; dev uses '' so
+// the Vite proxy handles "/api".
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.PROD ? 'https://heartcave-1.onrender.com' : '');
@@ -25,18 +24,11 @@ const api = axios.create({
   withCredentials: true,
 });
 
-refreshing = axios
-      .post(`${API_BASE}/api/auth/refresh`, {}, { withCredentials: true })
-
-
 api.interceptors.request.use((config) => {
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 });
 
-// --- Refresh handling -------------------------------------------------------
-// On a 401 we try the refresh endpoint exactly once, then replay the request.
-// Concurrent 401s share a single in-flight refresh promise.
 let refreshing = null;
 
 const doRefresh = async () => {
@@ -69,14 +61,12 @@ api.interceptors.response.use(
         return api(original);
       } catch {
         setAccessToken(null);
-        // Let the AuthContext observe the cleared token and redirect.
       }
     }
     return Promise.reject(error);
   }
 );
 
-// Convenience: pull a human-readable message out of an axios error.
 export const errorMessage = (err, fallback = 'Something went wrong') =>
   err?.response?.data?.message || err?.message || fallback;
 
