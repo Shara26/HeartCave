@@ -55,7 +55,7 @@ export default function AdminLogin() {
                   className="hc-input pl-9"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@heartcave.app"
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
