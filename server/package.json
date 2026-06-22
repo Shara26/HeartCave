@@ -8,7 +8,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node seeds/seed.js",
-    "seed:destroy": "node seeds/seed.js --destroy"
+    "seed:destroy": "node seeds/seed.js --destroy",
     "create:admin": "node seeds/createAdmin.js"
   },
   "engines": {
