@@ -1,10 +1,10 @@
 import crypto from 'crypto';
-import { sendPasswordResetEmail } from '../utils/mailer.js';
 import User from '../models/User.js';
 import { asyncHandler, ApiError } from '../utils/apiError.js';
 import { issueTokens, verifyRefreshToken, signAccessToken, refreshCookieOptions } from '../utils/tokens.js';
 import { generateUniqueAnonymousName } from '../utils/anonymousName.js';
 import { recalculateQueueForNewUser } from '../services/matchService.js';
+import { sendPasswordResetEmail, isMailConfigured } from '../utils/mailer.js';
 
 // Trim, cap length, drop empties, de-dupe, limit count — for freeform "Other" values.
 const cleanCustom = (arr) =>
@@ -122,9 +122,9 @@ export const forgotPassword = asyncHandler(async (req, res) => {
       console.error('[forgot-password] email send failed:', e.message);
     }
 
-    // Dev convenience only: return the link so it works without SMTP set up.
-    // NEVER returned in production (that would let anyone reset any account).
-    if (process.env.NODE_ENV !== 'production') {
+    // Dev convenience ONLY when email isn't configured — so once SMTP works,
+    // the link is delivered by email and never exposed in the API response.
+    if (process.env.NODE_ENV !== 'production' && !isMailConfigured()) {
       return res.json({ success: true, message, devResetUrl: resetUrl });
     }
   }

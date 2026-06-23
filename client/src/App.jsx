@@ -18,6 +18,8 @@ import PublicProfile from './pages/PublicProfile.jsx';
 import AdminLogin from './pages/admin/AdminLogin.jsx';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import NotFound from './pages/NotFound.jsx';
+import ForgotPassword from './pages/ForgetPassword.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 
 export default function App() {
   return (
@@ -25,6 +27,8 @@ export default function App() {
       {/* Public */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/privacy" element={<Privacy />} />
 <Route path="/terms" element={<Terms />} />

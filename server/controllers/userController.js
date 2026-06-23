@@ -5,7 +5,7 @@ import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 import { asyncHandler, ApiError } from '../utils/apiError.js';
 import { computeKindness } from '../utils/kindness.js';
-import { RATING_TYPES, INSTANT_BAN_CATEGORIES } from '../config/constants.js';
+import { RATING_TYPES, INSTANT_BAN_CATEGORIES, AGE_GROUPS, STRUGGLES, INTERESTS } from '../config/constants.js';
 
 // Recompute a user's kindness score + badges from their full rating history.
 const refreshReputation = async (userId) => {
@@ -146,4 +146,51 @@ export const markOneNotificationRead = asyncHandler(async (req, res) => {
   );
   const unread = await Notification.countDocuments({ user: req.user._id, read: false });
   res.json({ success: true, unread });
+});
+
+// Trim, cap, de-dupe, limit freeform "Other" values.
+const cleanCustom = (arr) =>
+  Array.from(
+    new Set(
+      (Array.isArray(arr) ? arr : [])
+        .map((s) => String(s).trim())
+        .filter(Boolean)
+        .map((s) => s.slice(0, 40))
+    )
+  ).slice(0, 5);
+
+// PATCH /api/users/me  — update the signed-in user's matching profile.
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { ageGroup, interests, struggles, customInterests, customStruggles } = req.body;
+  const user = req.user;
+
+  if (ageGroup !== undefined) {
+    if (!AGE_GROUPS.includes(ageGroup)) throw new ApiError(400, 'Invalid age group');
+    user.ageGroup = ageGroup;
+  }
+
+  if (interests !== undefined) {
+    if (!Array.isArray(interests) || interests.some((i) => !INTERESTS.includes(i))) {
+      throw new ApiError(400, 'Invalid interest selection');
+    }
+    user.interests = interests;
+  }
+
+  if (struggles !== undefined) {
+    if (!Array.isArray(struggles) || struggles.some((s) => !STRUGGLES.includes(s))) {
+      throw new ApiError(400, 'Invalid struggle selection');
+    }
+    user.struggles = struggles;
+  }
+
+  if (customInterests !== undefined) user.customInterests = cleanCustom(customInterests);
+  if (customStruggles !== undefined) user.customStruggles = cleanCustom(customStruggles);
+
+  // At least one struggle keeps the user matchable.
+  if ((user.struggles?.length || 0) + (user.customStruggles?.length || 0) === 0) {
+    throw new ApiError(400, 'Please keep at least one struggle so we can match you');
+  }
+
+  await user.save();
+  res.json({ success: true, user: user.toSelf() });
 });

@@ -88,6 +88,14 @@ export default function Login() {
             </button>
           </form>
 
+
+
+          <p className="mt-3 text-center text-sm">
+            <Link to="/forgot-password" className="font-bold text-lavender-600 hover:underline">
+              Forgot password?
+            </Link>
+          </p>
+
           <p className="mt-5 text-center text-sm text-lavender-500">
             New to HeartCave?{' '}
             <Link to="/register" className="font-bold text-lavender-700 hover:underline">
