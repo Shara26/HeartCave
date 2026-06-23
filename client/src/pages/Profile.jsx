@@ -1,11 +1,17 @@
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import Avatar from '../components/common/Avatar.jsx';
 import Badge from '../components/common/Badge.jsx';
-import { Heart, ShieldCheck, EyeOff } from 'lucide-react';
+import { Heart, ShieldCheck, EyeOff, Pencil } from 'lucide-react';
 import { fullDate } from '../utils/format.js';
+import EditProfileModal from '../components/profile/EditProfileModal.jsx';
 
 export default function Profile() {
   const { user } = useAuth();
+  const [editing, setEditing] = useState(false);
+
+  const struggles = [...(user?.struggles || []), ...(user?.customStruggles || [])];
+  const interests = [...(user?.interests || []), ...(user?.customInterests || [])];
 
   return (
     <div className="mx-auto max-w-xl space-y-5">
@@ -16,7 +22,7 @@ export default function Profile() {
             <div className="rounded-full ring-4 ring-white">
               <Avatar name={user?.anonymousName} size="xl" />
             </div>
-            <div className="pb-1">
+            <div className="flex-1 pb-1">
               <h1 className="font-display text-2xl font-bold text-lavender-700">
                 {user?.anonymousName}
               </h1>
@@ -24,6 +30,12 @@ export default function Profile() {
                 Joined {user?.joinedAt ? fullDate(user.joinedAt) : '—'}
               </p>
             </div>
+            <button
+              onClick={() => setEditing(true)}
+              className="hc-btn-soft mb-1 inline-flex items-center gap-1.5"
+            >
+              <Pencil className="h-4 w-4" /> Edit
+            </button>
           </div>
 
           <div className="mt-5 flex items-center gap-2 rounded-2xl bg-lavender-50 px-4 py-3">
@@ -54,7 +66,7 @@ export default function Profile() {
               Struggles
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {user?.struggles?.map((s) => (
+              {struggles.map((s) => (
                 <span key={s} className="rounded-full bg-blush-100 px-2.5 py-1 text-xs font-semibold text-blush-500">
                   {s}
                 </span>
@@ -67,7 +79,7 @@ export default function Profile() {
               Interests
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {user?.interests?.map((i) => (
+              {interests.map((i) => (
                 <span key={i} className="rounded-full bg-lavender-100 px-2.5 py-1 text-xs font-semibold text-lavender-700">
                   {i}
                 </span>
@@ -93,6 +105,8 @@ export default function Profile() {
           </li>
         </ul>
       </div>
+
+      <EditProfileModal open={editing} onClose={() => setEditing(false)} />
     </div>
   );
 }

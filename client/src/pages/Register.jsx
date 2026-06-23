@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Heart, ShieldCheck } from 'lucide-react';
 import PasswordInput from '../components/common/PasswordInput.jsx';
+import ChipSelect from '../components/common/ChipSelect.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import { Spinner } from '../components/common/Loading.jsx';
@@ -13,27 +14,6 @@ import {
   INTERESTS as FALLBACK_INTERESTS,
   DISCLAIMER,
 } from '../utils/constants.js';
-
-function ChipGroup({ options, selected, onToggle, max }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map((opt) => {
-        const on = selected.includes(opt);
-        return (
-          <button
-            type="button"
-            key={opt}
-            onClick={() => onToggle(opt)}
-            disabled={!on && max && selected.length >= max}
-            className={`hc-chip ${on ? 'hc-chip-on' : 'hc-chip-off'} disabled:opacity-40`}
-          >
-            {opt}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 export default function Register() {
   const { register, errorMessage } = useAuth();
@@ -52,7 +32,9 @@ export default function Register() {
     ageGroup: '',
     interests: [],
     struggles: [],
-     acceptedSafetyPolicy: true,
+    customInterests: '',
+    customStruggles: '',
+    acceptedSafetyPolicy: true,
   });
   const [acceptPolicy, setAcceptPolicy] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -84,7 +66,13 @@ export default function Register() {
 
     setBusy(true);
     try {
-      const user = await register(form);
+      const splitCsv = (str) =>
+        str.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 5);
+      const user = await register({
+        ...form,
+        customInterests: splitCsv(form.customInterests),
+        customStruggles: splitCsv(form.customStruggles),
+      });
       toast.success(`Welcome to HeartCave, ${user.anonymousName}!`);
       navigate('/dashboard', { replace: true });
     } catch (err) {
@@ -172,19 +160,23 @@ export default function Register() {
 
             <div>
               <label className="hc-label">What are you navigating right now?</label>
-              <ChipGroup
+              <ChipSelect
                 options={meta.struggles}
                 selected={form.struggles}
                 onToggle={(v) => toggle('struggles', v)}
+                custom={form.customStruggles}
+                onCustomChange={(v) => set('customStruggles', v)}
               />
             </div>
 
             <div>
               <label className="hc-label">Your interests</label>
-              <ChipGroup
+              <ChipSelect
                 options={meta.interests}
                 selected={form.interests}
                 onToggle={(v) => toggle('interests', v)}
+                custom={form.customInterests}
+                onCustomChange={(v) => set('customInterests', v)}
               />
             </div>
 
