@@ -1,9 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import api from '../../services/api.js';
 import { timeAgo } from '../../utils/format.js';
 
+// Where each notification type should take the user when clicked.
+function routeFor(n) {
+  switch (n.type) {
+    case 'connection_request':
+      return n.refId ? `/requests?highlight=${n.refId}` : '/requests';
+    case 'request_accepted':
+      return n.refId ? `/chats/${n.refId}` : '/chats';
+    case 'request_rejected':
+      return '/requests';
+    case 'match_found':
+      return '/match';
+    case 'moderation_alert':
+    case 'admin_alert':
+      return '/admin';
+    default:
+      return null; // 'system' etc. — no navigation
+  }
+}
+
 export default function NotificationBell() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [unread, setUnread] = useState(0);
@@ -40,10 +61,26 @@ export default function NotificationBell() {
       try {
         await api.post('/users/notifications/read');
         setUnread(0);
+        setItems((list) => list.map((x) => ({ ...x, read: true })));
       } catch {
         /* ignore */
       }
     }
+  };
+
+  const handleClick = async (n) => {
+    setOpen(false);
+    if (!n.read) {
+      setItems((list) => list.map((x) => (x._id === n._id ? { ...x, read: true } : x)));
+      try {
+        const { data } = await api.post(`/users/notifications/${n._id}/read`);
+        if (typeof data.unread === 'number') setUnread(data.unread);
+      } catch {
+        /* ignore */
+      }
+    }
+    const to = routeFor(n);
+    if (to) navigate(to);
   };
 
   return (
@@ -72,16 +109,26 @@ export default function NotificationBell() {
                 You're all caught up.
               </p>
             ) : (
-              items.map((n) => (
-                <div
-                  key={n._id}
-                  className="border-b border-lavender-50 px-4 py-3 last:border-0 hover:bg-lavender-50/60"
-                >
-                  <p className="text-sm font-bold text-lavender-700">{n.title}</p>
-                  <p className="text-sm text-lavender-500">{n.body}</p>
-                  <p className="mt-1 text-xs text-lavender-300">{timeAgo(n.createdAt)}</p>
-                </div>
-              ))
+              items.map((n) => {
+                const clickable = routeFor(n) !== null;
+                return (
+                  <button
+                    key={n._id}
+                    type="button"
+                    onClick={() => handleClick(n)}
+                    className={`block w-full border-b border-lavender-50 px-4 py-3 text-left last:border-0 transition-colors hover:bg-lavender-50/60 ${
+                      clickable ? 'cursor-pointer' : 'cursor-default'
+                    } ${!n.read ? 'bg-lavender-50/40' : ''}`}
+                  >
+                    <p className="flex items-center gap-2 text-sm font-bold text-lavender-700">
+                      {!n.read && <span className="h-2 w-2 shrink-0 rounded-full bg-blush-400" />}
+                      {n.title}
+                    </p>
+                    <p className="text-sm text-lavender-500">{n.body}</p>
+                    <p className="mt-1 text-xs text-lavender-300">{timeAgo(n.createdAt)}</p>
+                  </button>
+                );
+              })
             )}
           </div>
         </div>

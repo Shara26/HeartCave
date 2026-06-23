@@ -137,3 +137,13 @@ export const markNotificationsRead = asyncHandler(async (req, res) => {
   await Notification.updateMany({ user: req.user._id, read: false }, { $set: { read: true } });
   res.json({ success: true });
 });
+
+// POST /api/users/notifications/:id/read  — mark a single notification read
+export const markOneNotificationRead = asyncHandler(async (req, res) => {
+  await Notification.updateOne(
+    { _id: req.params.id, user: req.user._id },
+    { $set: { read: true } }
+  );
+  const unread = await Notification.countDocuments({ user: req.user._id, read: false });
+  res.json({ success: true, unread });
+});

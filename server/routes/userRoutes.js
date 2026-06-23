@@ -21,5 +21,6 @@ router.post('/unblock', unblockUser);
 router.get('/notifications', getNotifications);
 router.post('/notifications/read', markNotificationsRead);
 router.get('/:id/profile', getPublicProfile);
+//router.post('/notifications/:id/read', markOneNotificationRead);
 
 export default router;

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Check, X, Inbox, Send, Sparkles } from 'lucide-react';
 import api, { errorMessage } from '../services/api.js';
@@ -8,11 +8,24 @@ import { EmptyState, SkeletonList } from '../components/common/States.jsx';
 import { Spinner } from '../components/common/Loading.jsx';
 import { timeAgo } from '../utils/format.js';
 
-function RequestCard({ req, kind, onRespond, busyId }) {
+function RequestCard({ req, kind, onRespond, busyId, highlight }) {
   const u = req.user || {};
   const busy = busyId === req.id;
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (highlight && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlight]);
+
   return (
-    <div className="hc-card p-5">
+    <div
+      ref={cardRef}
+      className={`hc-card p-5 transition-all ${
+        highlight ? 'ring-2 ring-blush-300 ring-offset-2 ring-offset-cream' : ''
+      }`}
+    >
       <div className="flex items-start gap-3">
         <Avatar name={u.anonymousName} size="md" />
         <div className="flex-1">
@@ -73,6 +86,8 @@ function RequestCard({ req, kind, onRespond, busyId }) {
 
 export default function Requests() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get('highlight');
   const [incoming, setIncoming] = useState([]);
   const [outgoing, setOutgoing] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,7 +147,14 @@ export default function Requests() {
         ) : (
           <div className="space-y-4">
             {incoming.map((r) => (
-              <RequestCard key={r.id} req={r} kind="incoming" onRespond={respond} busyId={busyId} />
+              <RequestCard
+                key={r.id}
+                req={r}
+                kind="incoming"
+                onRespond={respond}
+                busyId={busyId}
+                highlight={r.id === highlightId}
+              />
             ))}
           </div>
         )}
