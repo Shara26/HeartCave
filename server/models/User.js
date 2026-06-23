@@ -28,6 +28,8 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true, select: false },
 
+     resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
     // Public identity.
     anonymousName: { type: String, required: true, unique: true, index: true },
     avatar: { type: String, default: '' }, // seed/derived avatar key, not a photo
@@ -36,6 +38,8 @@ const userSchema = new mongoose.Schema(
     ageGroup: { type: String, enum: AGE_GROUPS, required: true },
     interests: [{ type: String, enum: INTERESTS }],
     struggles: [{ type: String, enum: STRUGGLES }],
+        customInterests: [{ type: String, trim: true, maxlength: 40 }],
+    customStruggles: [{ type: String, trim: true, maxlength: 40 }],
 
     // Reputation.
     kindnessScore: { type: Number, default: 0, min: 0, max: 100 },
@@ -85,6 +89,8 @@ userSchema.methods.toPublicProfile = function toPublicProfile() {
     ageGroup: this.ageGroup,
     interests: this.interests,
     struggles: this.struggles,
+     customInterests: this.customInterests || [],
+    customStruggles: this.customStruggles || [],
     kindnessScore: this.kindnessScore,
     badges: this.badges,
     joinedAt: this.createdAt,
@@ -102,6 +108,8 @@ userSchema.methods.toSelf = function toSelf() {
     ageGroup: this.ageGroup,
     interests: this.interests,
     struggles: this.struggles,
+     customInterests: this.customInterests || [],
+    customStruggles: this.customStruggles || [],
     kindnessScore: this.kindnessScore,
     badges: this.badges,
     role: this.role,

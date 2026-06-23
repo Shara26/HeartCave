@@ -38,6 +38,19 @@ export const loginRules = [
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
+export const forgotPasswordRules = [
+  body('email').isEmail().withMessage('A valid email is required').normalizeEmail(),
+];
+
+export const resetPasswordRules = [
+  body('token').notEmpty().withMessage('Reset token is required'),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters')
+    .matches(/[0-9]/)
+    .withMessage('Password must contain a number'),
+];
+
 export const postRules = [
   body('content').trim().isLength({ min: 1, max: 2000 }).withMessage('Post must be 1–2000 chars'),
 ];

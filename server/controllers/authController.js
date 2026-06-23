@@ -1,12 +1,26 @@
+import crypto from 'crypto';
+import { sendPasswordResetEmail } from '../utils/mailer.js';
 import User from '../models/User.js';
 import { asyncHandler, ApiError } from '../utils/apiError.js';
 import { issueTokens, verifyRefreshToken, signAccessToken, refreshCookieOptions } from '../utils/tokens.js';
 import { generateUniqueAnonymousName } from '../utils/anonymousName.js';
 import { recalculateQueueForNewUser } from '../services/matchService.js';
 
+// Trim, cap length, drop empties, de-dupe, limit count — for freeform "Other" values.
+const cleanCustom = (arr) =>
+  Array.from(
+    new Set(
+      (Array.isArray(arr) ? arr : [])
+        .map((s) => String(s).trim())
+        .filter(Boolean)
+        .map((s) => s.slice(0, 40))
+    )
+  ).slice(0, 5);
+
 // POST /api/auth/register
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, ageGroup, interests, struggles } = req.body;
+  const { name, email, password, ageGroup, interests, struggles, customInterests, customStruggles } =
+    req.body;
 
   const exists = await User.findOne({ email });
   if (exists) throw new ApiError(409, 'An account with that email already exists.');
@@ -20,6 +34,8 @@ export const register = asyncHandler(async (req, res) => {
     ageGroup,
     interests,
     struggles,
+    customInterests: cleanCustom(customInterests),
+    customStruggles: cleanCustom(customStruggles),
     anonymousName,
     avatar: anonymousName.slice(0, 2).toUpperCase(),
     acceptedSafetyPolicy: true,
@@ -79,4 +95,59 @@ export const logout = asyncHandler(async (req, res) => {
 // GET /api/auth/me
 export const me = asyncHandler(async (req, res) => {
   res.json({ success: true, user: req.user.toSelf() });
+});
+
+const hashToken = (t) => crypto.createHash('sha256').update(t).digest('hex');
+
+// POST /api/auth/forgot-password
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  // Always respond identically so attackers can't discover which emails exist.
+  const message = 'If an account exists for that email, a reset link is on its way.';
+
+  if (user && !user.isBanned) {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = hashToken(rawToken); // store only the hash
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save({ validateBeforeSave: false });
+
+    const base = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetUrl = `${base}/reset-password?token=${rawToken}`;
+
+    try {
+      await sendPasswordResetEmail(user.email, resetUrl);
+    } catch (e) {
+      console.error('[forgot-password] email send failed:', e.message);
+    }
+
+    // Dev convenience only: return the link so it works without SMTP set up.
+    // NEVER returned in production (that would let anyone reset any account).
+    if (process.env.NODE_ENV !== 'production') {
+      return res.json({ success: true, message, devResetUrl: resetUrl });
+    }
+  }
+
+  res.json({ success: true, message });
+});
+
+// POST /api/auth/reset-password
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+  if (!token) throw new ApiError(400, 'Reset token is required');
+
+  const user = await User.findOne({
+    resetPasswordToken: hashToken(token),
+    resetPasswordExpires: { $gt: new Date() },
+  }).select('+password +resetPasswordToken +resetPasswordExpires');
+
+  if (!user) throw new ApiError(400, 'This reset link is invalid or has expired.');
+
+  user.password = password; // re-hashed by the pre-save hook
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  res.json({ success: true, message: 'Your password has been reset. You can now sign in.' });
 });
