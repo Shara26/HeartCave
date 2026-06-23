@@ -5,6 +5,7 @@ import { Heart, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Spinner } from '../components/common/Loading.jsx';
 import AuthHero from '../components/common/AuthHero.jsx';
+import PasswordInput from '../components/common/PasswordInput.jsx';
 
 export default function Login() {
   const { login, errorMessage } = useAuth();
@@ -71,15 +72,14 @@ export default function Login() {
               </label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-lavender-300" />
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  className="hc-input pl-9"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <PasswordInput
+                leftIcon={Lock}
+                id="password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
               </div>
             </div>
 

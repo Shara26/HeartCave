@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Heart, ShieldCheck } from 'lucide-react';
+import PasswordInput from '../components/common/PasswordInput.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import { Spinner } from '../components/common/Loading.jsx';
@@ -143,10 +144,8 @@ export default function Register() {
               <label className="hc-label" htmlFor="password">
                 Password <span className="font-normal text-lavender-400">(min 8 characters)</span>
               </label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
-                className="hc-input"
                 required
                 minLength={8}
                 placeholder="Create a strong password"
