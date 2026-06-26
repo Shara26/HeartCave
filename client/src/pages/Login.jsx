@@ -104,12 +104,7 @@ export default function Login() {
           </p>
         </div>
 
-        <p className="mt-4 text-center text-xs text-lavender-400">
-          Are you a moderator?{' '}
-          <Link to="/admin/login" className="font-bold hover:underline">
-            Admin sign in
-          </Link>
-        </p>
+      
       </div>
     </div>
   );
