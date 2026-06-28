@@ -5,6 +5,7 @@ import Feedback from './pages/Feedback.jsx';
 import AdminFeedback from './pages/admin/AdminFeedback.jsx';
 import Privacy from './pages/Privacy.jsx';
 import Terms from './pages/Terms.jsx';
+import ScrollToTop from './components/common/ScrollToTop.jsx';
 
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -18,11 +19,13 @@ import PublicProfile from './pages/PublicProfile.jsx';
 import AdminLogin from './pages/admin/AdminLogin.jsx';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import NotFound from './pages/NotFound.jsx';
-import ForgotPassword from './pages/ForgetPassword.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
 
 export default function App() {
   return (
+    <>
+      <ScrollToTop />
     <Routes>
       {/* Public */}
       <Route path="/login" element={<Login />} />
@@ -73,5 +76,6 @@ export default function App() {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+     </>
   );
 }

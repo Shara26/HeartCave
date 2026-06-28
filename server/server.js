@@ -15,11 +15,23 @@ import { initSockets } from './sockets/index.js';
 
 const app = express();
 
+// ─── CORS allowed origins ─────────────────────────────────
+const allowedOrigins = [
+  process.env.CLIENT_URL, // your primary frontend origin
+  'https://heartcave.in',
+  'https://www.heartcave.in',
+  'http://localhost:5173',
+].filter(Boolean);
+
 // ─── Security & parsing ───────────────────────────────────
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin(origin, callback) {
+      // Allow no-origin tools (curl, health checks) and any whitelisted origin.
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: true,
   })
 );

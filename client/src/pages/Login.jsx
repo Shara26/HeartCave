@@ -16,16 +16,19 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true);
+    setFailed(false);
     try {
       const user = await login(email.trim(), password);
       toast.success(`Welcome back, ${user.anonymousName}`);
       navigate(user.role === 'admin' ? '/admin' : from, { replace: true });
     } catch (err) {
       toast.error(errorMessage(err, 'Could not sign you in'));
+      setFailed(true);
     } finally {
       setBusy(false);
     }
@@ -87,7 +90,15 @@ export default function Login() {
               {busy ? <Spinner size={18} /> : 'Sign in'}
             </button>
           </form>
-
+{failed && (
+            <div className="mt-4 rounded-2xl bg-blush-50 px-4 py-3 text-sm text-blush-600">
+              Hmm, that didn't work. Double-check your password, or{' '}
+              <Link to="/register" className="font-bold underline">
+                create an account
+              </Link>{' '}
+              if you're new here.
+            </div>
+          )}
 
 
           <p className="mt-3 text-center text-sm">

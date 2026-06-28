@@ -17,6 +17,8 @@ export default function ChatRoom() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const listRef = useRef(null);
+
   const [loading, setLoading] = useState(true);
   const [partner, setPartner] = useState(null);
   const [starters, setStarters] = useState([]);
@@ -37,8 +39,13 @@ export default function ChatRoom() {
   const typingTimeout = useRef(null);
   const seenIds = useRef(new Set());
 
-  const scrollToBottom = useCallback(() => {
-    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+ const scrollToBottom = useCallback(() => {
+    // Scroll ONLY the message list, never the page. Setting scrollTop on the
+    // container avoids scrollIntoView pulling the whole window down.
+    requestAnimationFrame(() => {
+      const el = listRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
   }, []);
 
   const addMessage = useCallback(
@@ -251,7 +258,10 @@ export default function ChatRoom() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-3 overflow-y-auto border-x border-lavender-100 bg-white/60 p-4">
+      <div
+        ref={listRef}
+        className="flex-1 space-y-3 overflow-y-auto border-x border-lavender-100 bg-white/60 p-4"
+      >
         {messages.length === 0 && (
           <div className="rounded-2xl bg-lavender-50 p-4">
             <div className="mb-2 flex items-center gap-1.5 font-bold text-lavender-700">
