@@ -100,7 +100,6 @@ export const me = asyncHandler(async (req, res) => {
 const hashToken = (t) => crypto.createHash('sha256').update(t).digest('hex');
 
 // POST /api/auth/forgot-password
-// POST /api/auth/forgot-password
 export const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
@@ -134,16 +133,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     console.error('[forgot-password] email send failed:', e.message)
   );
 });
-    // Dev convenience ONLY when email isn't configured — so once SMTP works,
-    // the link is delivered by email and never exposed in the API response.
-    if (process.env.NODE_ENV !== 'production' && !isMailConfigured()) {
-      return res.json({ success: true, message, devResetUrl: resetUrl });
-    }
-  }
-
-  res.json({ success: true, message });
-});
-
+  
 // POST /api/auth/reset-password
 export const resetPassword = asyncHandler(async (req, res) => {
   const { token, password } = req.body;
