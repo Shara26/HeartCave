@@ -34,3 +34,15 @@ export const sendPasswordResetEmail = async (to, resetUrl) => {
     `<p>If you didn't request this, you can safely ignore this email.</p>`;
   return sendMail({ to, subject, text, html });
 };
+
+export const sendFeedbackNotification = async (feedback = {}) => {
+  const to = process.env.MAIL_FROM || 'onboarding@resend.dev';
+  const subject = 'New HeartCave feedback received';
+  const body = feedback.message || feedback.text || JSON.stringify(feedback);
+  return sendMail({
+    to,
+    subject,
+    text: `New feedback was submitted on HeartCave.\n\n${body}`,
+    html: `<p>New feedback was submitted on HeartCave.</p><p>${body}</p>`,
+  });
+};
