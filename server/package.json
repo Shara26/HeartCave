@@ -28,6 +28,7 @@
     "mongoose": "^8.6.0",
     "morgan": "^1.10.0",
     "nodemailer": "^9.0.1",
+    "resend": "^6.16.0",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
