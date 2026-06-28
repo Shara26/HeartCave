@@ -100,6 +100,7 @@ export const me = asyncHandler(async (req, res) => {
 const hashToken = (t) => crypto.createHash('sha256').update(t).digest('hex');
 
 // POST /api/auth/forgot-password
+// POST /api/auth/forgot-password
 export const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
@@ -107,21 +108,32 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   // Always respond identically so attackers can't discover which emails exist.
   const message = 'If an account exists for that email, a reset link is on its way.';
 
-  if (user && !user.isBanned) {
-    const rawToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = hashToken(rawToken); // store only the hash
-    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-    await user.save({ validateBeforeSave: false });
+  // Nothing to do if no matching, active account — respond and stop.
+  if (!user || user.isBanned) {
+    return res.json({ success: true, message });
+  }
 
-    const base = process.env.CLIENT_URL || 'http://localhost:5173';
-    const resetUrl = `${base}/reset-password?token=${rawToken}`;
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  user.resetPasswordToken = hashToken(rawToken);
+  user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  await user.save({ validateBeforeSave: false });
 
-    try {
-      await sendPasswordResetEmail(user.email, resetUrl);
-    } catch (e) {
-      console.error('[forgot-password] email send failed:', e.message);
-    }
+  const base = process.env.CLIENT_URL || 'http://localhost:5173';
+  const resetUrl = `${base}/reset-password?token=${rawToken}`;
 
+  // Respond to the user IMMEDIATELY — do not wait for the email to send.
+  if (process.env.NODE_ENV !== 'production' && !isMailConfigured()) {
+    res.json({ success: true, message, devResetUrl: resetUrl });
+  } else {
+    res.json({ success: true, message });
+  }
+
+  // Send the email in the background (fire-and-forget). A slow or failing
+  // SMTP server can no longer hang the HTTP response.
+  sendPasswordResetEmail(user.email, resetUrl).catch((e) =>
+    console.error('[forgot-password] email send failed:', e.message)
+  );
+});
     // Dev convenience ONLY when email isn't configured — so once SMTP works,
     // the link is delivered by email and never exposed in the API response.
     if (process.env.NODE_ENV !== 'production' && !isMailConfigured()) {
